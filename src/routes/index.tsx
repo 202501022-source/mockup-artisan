@@ -230,7 +230,10 @@ function Index() {
         )}
         {view === "My listings" && <ListingsView />}
         {view === "Logistics" && <LogisticsView role={role} setRole={setRole} jobState={jobState} setJobState={setJobState} />}
-        {view === "Bulk lots" && <BulkView onSelect={() => setSelected(listings[2])} />}
+        {view === "Bulk lots" && <BulkView onSelect={() => {
+          const bulkLot = listings.find((item) => item.bulk);
+          if (bulkLot) setSelected(bulkLot);
+        }} />}
         {view === "Impact" && <ImpactView />}
       </main>
 
