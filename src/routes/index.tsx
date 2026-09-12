@@ -23,6 +23,10 @@ import {
   X,
 } from "lucide-react";
 import { useMemo, useState } from "react";
+import blueDrumsImage from "@/assets/blue-drums.jpg";
+import cardboardBalesImage from "@/assets/cardboard-bales.jpg";
+import filmBalesImage from "@/assets/film-bales.jpg";
+import woodPalletsImage from "@/assets/wood-pallets.jpg";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -63,6 +67,9 @@ const listings = [
     floor: "₹9.20",
     rating: "4.8",
     contamination: "2.1%",
+    lotCode: "CP-884",
+    spec: "Certified clean",
+    image: cardboardBalesImage,
     color: "lime",
     decay: 46,
   },
@@ -80,6 +87,9 @@ const listings = [
     floor: "₹34.00",
     rating: "5.0",
     contamination: "0.8%",
+    lotCode: "HD-512",
+    spec: "Washed & inspected",
+    image: blueDrumsImage,
     color: "sky",
     decay: 34,
   },
@@ -97,9 +107,32 @@ const listings = [
     floor: "flat price",
     rating: "4.7",
     contamination: "3 stops",
+    lotCode: "WP-201",
+    spec: "Grade A heat treated",
+    image: woodPalletsImage,
     color: "sun",
     decay: 82,
     bulk: true,
+  },
+  {
+    id: "RL-0993",
+    material: "Plastic",
+    grade: "LDPE Film",
+    title: "Clear LDPE film bales",
+    company: "GreenPoly Material Yards",
+    location: "Bommasandra Industrial Area",
+    distance: 24,
+    weight: "2,400 kg",
+    price: "₹26.00",
+    oldPrice: "₹31.00",
+    floor: "₹22.00",
+    rating: "4.9",
+    contamination: "2.0%",
+    lotCode: "LD-993",
+    spec: "98% transparency",
+    image: filmBalesImage,
+    color: "sky",
+    decay: 58,
   },
 ];
 
@@ -295,12 +328,18 @@ function BrowseView({ role, material, setMaterial, distance, setDistance, filter
       </div>
     </section>
 
-    <section id="lots" className="scroll-mt-24">
-      <div className="mb-4 flex flex-col justify-between gap-1 sm:flex-row sm:items-end">
-        <h2 className="font-display text-3xl font-semibold">Nearby lots <span className="text-muted-foreground">/ {role.toLowerCase()} view</span></h2>
-        <span className="text-sm text-muted-foreground">Prices decay toward their floor</span>
+    <section id="lots" className="scroll-mt-24 rounded-panel bg-card/55 px-3 py-5 sm:px-5 sm:py-6">
+      <div className="mb-5 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+        <div>
+          <p className="flex items-center gap-2 text-[10px] font-semibold uppercase text-primary"><span className="size-2 rounded-full bg-highlight" /> Industrial exchange</p>
+          <h2 className="mt-1 font-display text-3xl font-semibold">Matched lots near MetroPack</h2>
+        </div>
+        <div className="flex items-center gap-4 text-xs">
+          <span className="text-muted-foreground">Showing {filtered.length} verified lots</span>
+          <button onClick={() => chooseView("Logistics")} className="inline-flex items-center gap-1 font-semibold text-primary">View logistics map <MapPin className="size-3.5" /></button>
+        </div>
       </div>
-      <div className="grid gap-5 md:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {filtered.map((item) => <ListingCard key={item.id} item={item} requested={requested.includes(item.id)} onView={() => setSelected(item)} onRequest={() => requestLot(item.id)} />)}
       </div>
       {filtered.length === 0 && <div className="rounded-panel border-2 border-dashed border-foreground/15 bg-card p-10 text-center"><Box className="mx-auto size-8 text-muted-foreground" /><p className="mt-3 font-display text-xl font-semibold">No lots within {distance} km</p><button onClick={() => setDistance(50)} className="mt-3 rounded-full bg-foreground px-4 py-2 text-sm text-background">Expand search</button></div>}
@@ -323,14 +362,22 @@ function BrowseView({ role, material, setMaterial, distance, setDistance, filter
 }
 
 function ListingCard({ item, requested, onView, onRequest }: { item: (typeof listings)[number]; requested: boolean; onView: () => void; onRequest: () => void }) {
-  const tone = item.color === "lime" ? "bg-highlight/55" : item.color === "sky" ? "bg-info/25" : "bg-warning/45";
-  return <article className={`flex min-h-[295px] flex-col rounded-card border-2 p-5 transition-transform hover:-translate-y-1 ${item.bulk ? "border-warning bg-warning/20" : "border-foreground/10 bg-card"}`}>
-    <div className="flex items-center justify-between gap-2"><span className={`rounded-full px-3 py-1 text-xs font-semibold uppercase ${tone}`}>{item.material} · {item.grade}</span><span className="flex items-center gap-1 text-xs font-semibold text-primary"><Star className="size-3.5 fill-current" /> {item.rating}</span></div>
-    <button onClick={onView} className="mt-4 text-left"><h3 className="font-display text-xl font-semibold leading-tight">{item.title}</h3><p className="mt-1 text-sm text-muted-foreground">{item.company} · {item.distance} km</p></button>
-    <div className="mt-4 h-2 overflow-hidden rounded-full bg-foreground/8"><div className={`h-full ${item.decay > 75 ? "bg-accent" : "bg-primary"}`} style={{ width: `${item.decay}%` }} /></div>
-    <div className="mt-2 flex justify-between text-xs text-muted-foreground"><span>{item.decay}% to floor</span><span>{item.weight}</span></div>
-    <div className="mt-auto flex items-end justify-between pt-4"><div><p className="text-xs text-muted-foreground line-through">{item.oldPrice}</p><p className="font-display text-2xl font-semibold">{item.price}<span className="text-sm">/kg</span></p></div><span className="text-xs text-muted-foreground">floor {item.floor}</span></div>
-    <button disabled={requested} onClick={onRequest} className={`mt-4 rounded-full py-2.5 font-display font-semibold ${requested ? "bg-primary/15 text-primary" : item.bulk ? "bg-accent text-accent-foreground shadow-button-accent" : "bg-foreground text-background"}`}>{requested ? <span className="inline-flex items-center gap-1.5"><Check className="size-4" /> Request sent</span> : item.bulk ? "Purchase bulk lot" : "Request lot"}</button>
+  return <article className="flex min-h-[390px] flex-col rounded-card border border-foreground/10 bg-card p-3 transition-transform hover:-translate-y-1">
+    <div className="flex items-center justify-between gap-2 px-0.5 pb-2"><span className="rounded-full bg-primary/10 px-2.5 py-1 text-[10px] font-semibold uppercase text-primary">{item.material}</span><span className="font-display text-xl font-semibold text-primary">{item.price}<span className="text-[10px] font-normal text-muted-foreground">/{item.material === "Pallets" ? "unit" : "kg"}</span></span></div>
+    <div className="relative overflow-hidden rounded-lg">
+      <img src={item.image} alt={`${item.title} inventory`} loading="lazy" width={1024} height={640} className="aspect-[16/9] w-full object-cover" />
+      <span className="absolute bottom-2 left-2 rounded bg-card/90 px-2 py-1 font-mono text-[10px] font-semibold shadow-sm">Lot #{item.lotCode}</span>
+    </div>
+    <button onClick={onView} className="mt-3 text-left"><h3 className="font-display text-base font-semibold leading-tight">{item.title}</h3><p className="mt-0.5 truncate text-[11px] text-muted-foreground">{item.company}</p></button>
+    <dl className="mt-3 space-y-1.5 text-[11px]">
+      <div className="flex items-center justify-between gap-2"><dt className="flex items-center gap-1.5 text-muted-foreground"><MapPin className="size-3" /> Distance</dt><dd className="font-semibold">{item.distance} km</dd></div>
+      <div className="flex items-center justify-between gap-2"><dt className="flex items-center gap-1.5 text-muted-foreground"><Box className="size-3" /> Volume</dt><dd className="font-semibold">{item.weight} ready</dd></div>
+      <div className="flex items-center justify-between gap-2"><dt className="flex items-center gap-1.5 text-muted-foreground"><Sparkles className="size-3" /> Spec</dt><dd className="truncate font-semibold">{item.spec}</dd></div>
+    </dl>
+    <div className="mt-auto grid grid-cols-2 gap-2 pt-4">
+      <button onClick={onView} className="rounded-lg bg-secondary py-2 text-xs font-semibold">Details</button>
+      <button disabled={requested} onClick={onRequest} className={`rounded-lg py-2 text-xs font-semibold ${requested ? "bg-primary/15 text-primary" : "bg-primary text-primary-foreground"}`}>{requested ? <span className="inline-flex items-center gap-1"><Check className="size-3.5" /> Reserved</span> : <span className="inline-flex items-center gap-1">Reserve <Check className="size-3.5" /></span>}</button>
+    </div>
   </article>;
 }
 
