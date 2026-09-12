@@ -50,7 +50,7 @@ export const Route = createFileRoute("/")({
 });
 
 type View = "Browse" | "My listings" | "Logistics" | "Bulk lots" | "Impact";
-type Role = "Buyer" | "Seller" | "Logistics";
+type Role = "Buyer" | "Seller";
 
 const listings = [
   {
@@ -163,6 +163,11 @@ function Index() {
     setMobileOpen(false);
   };
 
+  const chooseMarketplaceRole = (next: Role) => {
+    setRole(next);
+    chooseView(next === "Buyer" ? "Browse" : "My listings");
+  };
+
   const requestLot = (id: string) => {
     setRequested((current) => (current.includes(id) ? current : [...current, id]));
     setSelected(null);
@@ -180,16 +185,9 @@ function Index() {
             </span>
           </button>
 
-          <nav className="hidden items-center gap-1 text-sm font-medium md:flex" aria-label="Main navigation">
-            {(["Browse", "My listings", "Logistics", "Bulk lots", "Impact"] as View[]).map((item) => (
-              <button
-                key={item}
-                onClick={() => chooseView(item)}
-                className={`rounded-full px-3 py-1.5 transition-colors ${view === item ? "bg-foreground text-background" : "hover:bg-foreground/5"}`}
-              >
-                {item}
-              </button>
-            ))}
+          <nav className="hidden items-center rounded-xl border-2 border-foreground/10 bg-card p-1 text-sm font-semibold md:flex" aria-label="Dashboard navigation">
+            <button onClick={() => chooseView(role === "Buyer" ? "Browse" : "My listings")} className={`rounded-lg px-5 py-2 transition-colors ${view !== "Logistics" ? "bg-foreground text-background" : "text-muted-foreground hover:bg-foreground/5"}`}>Buy or sell</button>
+            <button onClick={() => chooseView("Logistics")} className={`rounded-lg px-5 py-2 transition-colors ${view === "Logistics" ? "bg-foreground text-background" : "text-muted-foreground hover:bg-foreground/5"}`}>Logistics</button>
           </nav>
 
           <div className="flex items-center gap-2">
@@ -201,7 +199,7 @@ function Index() {
               <Bell className="size-4" />
               <span className="absolute -right-0.5 -top-0.5 grid size-4 place-items-center rounded-full bg-accent text-[10px] font-semibold text-accent-foreground">3</span>
             </button>
-            <button onClick={() => setRole("Seller")} className="hidden rounded-full bg-highlight px-4 py-2 font-display text-sm font-semibold shadow-button sm:inline-flex">
+            <button onClick={() => chooseMarketplaceRole("Seller")} className="hidden rounded-full bg-highlight px-4 py-2 font-display text-sm font-semibold shadow-button sm:inline-flex">
               <Plus className="mr-1.5 size-4" /> List material
             </button>
             <button aria-label="Open menu" onClick={() => setMobileOpen((open) => !open)} className="grid size-9 place-items-center rounded-full bg-foreground text-background md:hidden">
@@ -212,12 +210,9 @@ function Index() {
 
         {mobileOpen && (
           <nav className="border-t border-foreground/10 px-4 py-3 md:hidden">
-            <div className="grid grid-cols-2 gap-2">
-              {(["Browse", "My listings", "Logistics", "Bulk lots", "Impact"] as View[]).map((item) => (
-                <button key={item} onClick={() => chooseView(item)} className={`rounded-xl px-3 py-2 text-left text-sm font-semibold ${view === item ? "bg-foreground text-background" : "bg-card"}`}>
-                  {item}
-                </button>
-              ))}
+            <div className="grid grid-cols-2 gap-2" aria-label="Dashboard navigation">
+              <button onClick={() => chooseView(role === "Buyer" ? "Browse" : "My listings")} className={`rounded-xl px-3 py-2 text-left text-sm font-semibold ${view !== "Logistics" ? "bg-foreground text-background" : "bg-card"}`}>Buy or sell</button>
+              <button onClick={() => chooseView("Logistics")} className={`rounded-xl px-3 py-2 text-left text-sm font-semibold ${view === "Logistics" ? "bg-foreground text-background" : "bg-card"}`}>Logistics</button>
             </div>
           </nav>
         )}
@@ -236,16 +231,16 @@ function Index() {
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
           <div>
             <p className="text-xs font-semibold uppercase text-muted-foreground">SegFaults · HackOut ’26</p>
-            <p className="font-display text-xl font-semibold">Good morning, MetroPack Industries</p>
+            <p className="font-display text-xl font-semibold">{view === "Logistics" ? "Logistics operations" : "Good morning, MetroPack Industries"}</p>
           </div>
-          <div className="flex w-fit rounded-full border-2 border-foreground/10 bg-card p-1 text-xs font-semibold">
-            {(["Buyer", "Seller", "Logistics"] as Role[]).map((item) => (
-              <button key={item} onClick={() => setRole(item)} className={`rounded-full px-3 py-1.5 ${role === item ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}>
-                {item}
-              </button>
-            ))}
-          </div>
+          {view !== "Logistics" && <div className="flex w-fit rounded-xl border-2 border-foreground/10 bg-card p-1 text-xs font-semibold" aria-label="Marketplace mode">
+            {(["Buyer", "Seller"] as Role[]).map((item) => <button key={item} onClick={() => chooseMarketplaceRole(item)} className={`rounded-lg px-5 py-2 ${role === item ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}>{item === "Buyer" ? "Buy materials" : "Sell materials"}</button>)}
+          </div>}
         </div>
+
+        {view !== "Logistics" && <nav className="flex gap-2 overflow-x-auto border-b-2 border-foreground/10 pb-3" aria-label="Marketplace sections">
+          {(["Browse", "My listings", "Bulk lots", "Impact"] as View[]).map((item) => <button key={item} onClick={() => chooseView(item)} className={`shrink-0 rounded-lg px-4 py-2 text-sm font-semibold ${view === item ? "bg-primary text-primary-foreground" : "bg-card text-muted-foreground"}`}>{item}</button>)}
+        </nav>}
 
         {view === "Browse" && (
           <BrowseView
@@ -262,7 +257,7 @@ function Index() {
           />
         )}
         {view === "My listings" && <ListingsView />}
-        {view === "Logistics" && <LogisticsView role={role} setRole={setRole} jobState={jobState} setJobState={setJobState} />}
+        {view === "Logistics" && <LogisticsView jobState={jobState} setJobState={setJobState} />}
         {view === "Bulk lots" && <BulkView onSelect={() => {
           const bulkLot = listings.find((item) => item.bulk);
           if (bulkLot) setSelected(bulkLot);
@@ -392,13 +387,13 @@ function ListingsView() {
   </section>;
 }
 
-function LogisticsView({ role, setRole, jobState, setJobState }: { role: Role; setRole: (role: Role) => void; jobState: Record<string, string>; setJobState: (value: Record<string, string>) => void }) {
+function LogisticsView({ jobState, setJobState }: { jobState: Record<string, string>; setJobState: (value: Record<string, string>) => void }) {
   const update = (id: string, current: string) => setJobState({ ...jobState, [id]: current === "Open" ? "Assigned" : current === "Assigned" || current === "In transit" ? "Delivered" : current });
   return <section>
-    <PageTitle icon={<Truck />} eyebrow="Carrier workspace" title="Pickup & delivery jobs" copy="Open jobs are sorted by proximity to your depot." />
-    {role !== "Logistics" && <div className="mb-5 flex flex-col justify-between gap-3 rounded-2xl bg-info/20 p-4 sm:flex-row sm:items-center"><p className="text-sm"><strong>Previewing the carrier board.</strong> Switch roles to claim and complete jobs.</p><button onClick={() => setRole("Logistics")} className="rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background">Switch to logistics</button></div>}
+    <PageTitle icon={<Truck />} eyebrow="Logistics dashboard" title="Pickup & delivery jobs" copy="Manage available, assigned, in-transit, and delivered loads from one workspace." />
+    <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-4"><MiniStat label="Available" value="1 job" /><MiniStat label="Assigned" value="1 job" /><MiniStat label="In transit" value="1 job" /><MiniStat label="Delivered today" value="6 jobs" /></div>
     <div className="grid gap-5 lg:grid-cols-3">
-      {jobs.map((job, index) => { const status = jobState[job.id] ?? job.status; return <article key={job.id} className="rounded-card border-2 border-foreground/10 bg-card p-5"><div className="flex items-center justify-between"><span className="font-display text-lg font-semibold">{job.id}</span><span className={`rounded-full px-3 py-1 text-xs font-semibold ${status === "Open" ? "bg-accent text-accent-foreground" : status === "Delivered" ? "bg-primary/15 text-primary" : "bg-warning/45"}`}>{status}</span></div><div className="my-5 flex items-center gap-3"><span className="grid size-10 place-items-center rounded-full bg-secondary"><MapPin className="size-5" /></span><div><p className="font-semibold">{job.route}</p><p className="text-sm text-muted-foreground">{job.detail}</p></div></div><div className="flex items-end justify-between"><div><p className="text-xs uppercase text-muted-foreground">Carrier payout</p><p className="font-display text-2xl font-semibold">{job.payout}</p></div>{status !== "Delivered" && <button disabled={role !== "Logistics"} onClick={() => update(job.id, status)} className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-40">{status === "Open" ? "Claim job" : "Mark delivered"}</button>}{status === "Delivered" && <PackageCheck className="size-7 text-primary" />}</div>{index === 0 && status === "Assigned" && <p className="mt-4 rounded-xl bg-highlight/40 p-3 text-xs font-semibold">Buyer and seller notified. Job locked to GreenMiles Logistics.</p>}</article>; })}
+      {jobs.map((job, index) => { const status = jobState[job.id] ?? job.status; return <article key={job.id} className="rounded-card border-2 border-foreground/10 bg-card p-5"><div className="flex items-center justify-between"><span className="font-display text-lg font-semibold">{job.id}</span><span className={`rounded-full px-3 py-1 text-xs font-semibold ${status === "Open" ? "bg-accent text-accent-foreground" : status === "Delivered" ? "bg-primary/15 text-primary" : "bg-warning/45"}`}>{status}</span></div><div className="my-5 flex items-center gap-3"><span className="grid size-10 place-items-center rounded-full bg-secondary"><MapPin className="size-5" /></span><div><p className="font-semibold">{job.route}</p><p className="text-sm text-muted-foreground">{job.detail}</p></div></div><div className="flex items-end justify-between"><div><p className="text-xs uppercase text-muted-foreground">Carrier payout</p><p className="font-display text-2xl font-semibold">{job.payout}</p></div>{status !== "Delivered" && <button onClick={() => update(job.id, status)} className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">{status === "Open" ? "Claim job" : "Mark delivered"}</button>}{status === "Delivered" && <PackageCheck className="size-7 text-primary" />}</div>{index === 0 && status === "Assigned" && <p className="mt-4 rounded-xl bg-highlight/40 p-3 text-xs font-semibold">Buyer and seller notified. Job locked to GreenMiles Logistics.</p>}</article>; })}
     </div>
   </section>;
 }
